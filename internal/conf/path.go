@@ -231,14 +231,15 @@ type Path struct {
 	Forward Forward `json:"forward"`
 
 	// Record
-	Record                bool         `json:"record"`
-	Playback              *bool        `json:"playback,omitempty" deprecated:"true"`
-	RecordPath            string       `json:"recordPath"`
-	RecordFormat          RecordFormat `json:"recordFormat"`
-	RecordPartDuration    Duration     `json:"recordPartDuration"`
-	RecordMaxPartSize     StringSize   `json:"recordMaxPartSize"`
-	RecordSegmentDuration Duration     `json:"recordSegmentDuration"`
-	RecordDeleteAfter     Duration     `json:"recordDeleteAfter"`
+	Record                     bool         `json:"record"`
+	Playback                   *bool        `json:"playback,omitempty" deprecated:"true"`
+	RecordPath                 string       `json:"recordPath"`
+	RecordFormat               RecordFormat `json:"recordFormat"`
+	RecordPartDuration         Duration     `json:"recordPartDuration"`
+	RecordMaxPartSize          StringSize   `json:"recordMaxPartSize"`
+	RecordSegmentDuration      Duration     `json:"recordSegmentDuration"`
+	RecordSegmentRoundDuration Duration     `json:"recordSegmentRoundDuration"`
+	RecordDeleteAfter          Duration     `json:"recordDeleteAfter"`
 
 	// Authentication (deprecated)
 	PublishUser *Credential `json:"publishUser,omitempty" deprecated:"true"`
@@ -373,6 +374,7 @@ func (pconf *Path) setDefaults() {
 	pconf.RecordPartDuration = Duration(1 * time.Second)
 	pconf.RecordMaxPartSize = 50 * 1024 * 1024
 	pconf.RecordSegmentDuration = 3600 * Duration(time.Second)
+	pconf.RecordSegmentRoundDuration = Duration(time.Duration(0))
 	pconf.RecordDeleteAfter = 24 * 3600 * Duration(time.Second)
 
 	// Publisher source
