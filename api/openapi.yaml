@@ -1125,6 +1125,8 @@ components:
           type: string
         recordPartDuration:
           type: string
+        recordPartRoundDuration:
+          type: string
         recordPath:
           type: string
         recordSegmentDuration:
