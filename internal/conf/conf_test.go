@@ -56,6 +56,7 @@ func TestConfFromFile(t *testing.T) {
 			RecordFormat:               RecordFormatFMP4,
 			RecordPartDuration:         Duration(1 * time.Second),
 			RecordSegmentDuration:      3600000000000,
+			RecordSegmentRoundDuration: 0,
 			RecordDeleteAfter:          86400000000000,
 			OverridePublisher:          true,
 			RPICameraWidth:             1920,
