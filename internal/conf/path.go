@@ -102,6 +102,7 @@ type Path struct {
 	RecordPath                 string         `json:"recordPath"`
 	RecordFormat               RecordFormat   `json:"recordFormat"`
 	RecordPartDuration         StringDuration `json:"recordPartDuration"`
+	RecordPartRoundDuration    StringDuration `json:"recordPartRoundDuration"`
 	RecordSegmentDuration      StringDuration `json:"recordSegmentDuration"`
 	RecordSegmentRoundDuration StringDuration `json:"recordSegmentRoundDuration"`
 	RecordDeleteAfter          StringDuration `json:"recordDeleteAfter"`
@@ -193,6 +194,7 @@ func (pconf *Path) setDefaults() {
 	pconf.RecordPath = "./recordings/%path/%Y-%m-%d_%H-%M-%S-%f"
 	pconf.RecordFormat = RecordFormatFMP4
 	pconf.RecordPartDuration = StringDuration(1 * time.Second)
+	pconf.RecordPartRoundDuration = StringDuration(time.Duration(0))
 	pconf.RecordSegmentDuration = 3600 * StringDuration(time.Second)
 	pconf.RecordSegmentRoundDuration = StringDuration(time.Duration(0))
 	pconf.RecordDeleteAfter = 24 * 3600 * StringDuration(time.Second)

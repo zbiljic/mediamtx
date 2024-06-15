@@ -20,6 +20,7 @@ type Agent struct {
 	PathFormat           string
 	Format               conf.RecordFormat
 	PartDuration         time.Duration
+	PartRoundDuration    time.Duration
 	SegmentDuration      time.Duration
 	SegmentRoundDuration time.Duration
 	PathName             string
