@@ -63,6 +63,20 @@ func (t *formatFMP4Track) write(sample *sample) error {
 	dts := timestampToDuration(sample.dts, int(t.initTrack.TimeScale))
 
 	if t.f.currentSegment == nil {
+		if !sample.ntp.IsZero() && t.f.ri.partRoundDuration > 0 {
+			if t.f.startAfterNTP.IsZero() {
+				t.f.startAfterNTP = sample.ntp.Round(t.f.ri.partRoundDuration)
+				if sample.ntp.Sub(t.f.startAfterNTP) >= 0 {
+					t.f.startAfterNTP = t.f.startAfterNTP.Add(t.f.ri.partRoundDuration)
+				}
+			}
+
+			if sample.ntp.Compare(t.f.startAfterNTP) < 0 {
+				// wait for next round time to start the segment
+				return nil
+			}
+		}
+
 		t.f.currentSegment = &formatFMP4Segment{
 			f:        t.f,
 			startDTS: dts,
