@@ -24,6 +24,7 @@ type recorderInstance struct {
 	partDuration         time.Duration
 	segmentDuration      time.Duration
 	segmentRoundDuration time.Duration
+	partRoundDuration    time.Duration
 	pathName             string
 	stream               *stream.Stream
 	onSegmentCreate      OnSegmentCreateFunc

@@ -352,6 +352,8 @@ components:
           type: string
         recordPartDuration:
           type: string
+        recordPartRoundDuration:
+          type: string
         recordSegmentDuration:
           type: string
         recordSegmentRoundDuration:

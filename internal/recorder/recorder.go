@@ -20,6 +20,7 @@ type Recorder struct {
 	PathFormat           string
 	Format               conf.RecordFormat
 	PartDuration         time.Duration
+	PartRoundDuration    time.Duration
 	SegmentDuration      time.Duration
 	SegmentRoundDuration time.Duration
 	PathName             string
@@ -59,6 +60,7 @@ func (r *Recorder) Initialize() {
 		partDuration:         r.PartDuration,
 		segmentDuration:      r.SegmentDuration,
 		segmentRoundDuration: r.SegmentRoundDuration,
+		partRoundDuration:    r.PartRoundDuration,
 		pathName:             r.PathName,
 		stream:               r.Stream,
 		onSegmentCreate:      r.OnSegmentCreate,
@@ -106,6 +108,7 @@ func (r *Recorder) run() {
 			partDuration:         r.PartDuration,
 			segmentDuration:      r.SegmentDuration,
 			segmentRoundDuration: r.SegmentRoundDuration,
+			partRoundDuration:    r.PartRoundDuration,
 			pathName:             r.PathName,
 			stream:               r.Stream,
 			onSegmentCreate:      r.OnSegmentCreate,
