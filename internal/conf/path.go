@@ -123,13 +123,14 @@ type Path struct {
 	UseAbsoluteTimestamp       bool     `json:"useAbsoluteTimestamp"`
 
 	// Record
-	Record                bool         `json:"record"`
-	Playback              *bool        `json:"playback,omitempty"` // deprecated
-	RecordPath            string       `json:"recordPath"`
-	RecordFormat          RecordFormat `json:"recordFormat"`
-	RecordPartDuration    Duration     `json:"recordPartDuration"`
-	RecordSegmentDuration Duration     `json:"recordSegmentDuration"`
-	RecordDeleteAfter     Duration     `json:"recordDeleteAfter"`
+	Record                     bool         `json:"record"`
+	Playback                   *bool        `json:"playback,omitempty"` // deprecated
+	RecordPath                 string       `json:"recordPath"`
+	RecordFormat               RecordFormat `json:"recordFormat"`
+	RecordPartDuration         Duration     `json:"recordPartDuration"`
+	RecordSegmentDuration      Duration     `json:"recordSegmentDuration"`
+	RecordSegmentRoundDuration Duration     `json:"recordSegmentRoundDuration"`
+	RecordDeleteAfter          Duration     `json:"recordDeleteAfter"`
 
 	// Authentication (deprecated)
 	PublishUser *Credential `json:"publishUser,omitempty"` // deprecated
@@ -228,6 +229,7 @@ func (pconf *Path) setDefaults() {
 	pconf.RecordFormat = RecordFormatFMP4
 	pconf.RecordPartDuration = Duration(1 * time.Second)
 	pconf.RecordSegmentDuration = 3600 * Duration(time.Second)
+	pconf.RecordSegmentRoundDuration = Duration(time.Duration(0))
 	pconf.RecordDeleteAfter = 24 * 3600 * Duration(time.Second)
 
 	// Publisher source

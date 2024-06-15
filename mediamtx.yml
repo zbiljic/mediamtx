@@ -494,6 +494,9 @@ pathDefaults:
   recordPartDuration: 1s
   # Minimum duration of each segment.
   recordSegmentDuration: 1h
+  # Maximum duration to which a segment is rounded to the nearest multiple of.
+  # Set to 0s to disable segment rounding.
+  recordSegmentRoundDuration: 0s
   # Delete segments after this timespan.
   # Set to 0s to disable automatic deletion.
   recordDeleteAfter: 1d

@@ -19,15 +19,16 @@ type sample struct {
 }
 
 type recorderInstance struct {
-	pathFormat        string
-	format            conf.RecordFormat
-	partDuration      time.Duration
-	segmentDuration   time.Duration
-	pathName          string
-	stream            *stream.Stream
-	onSegmentCreate   OnSegmentCreateFunc
-	onSegmentComplete OnSegmentCompleteFunc
-	parent            logger.Writer
+	pathFormat           string
+	format               conf.RecordFormat
+	partDuration         time.Duration
+	segmentDuration      time.Duration
+	segmentRoundDuration time.Duration
+	pathName             string
+	stream               *stream.Stream
+	onSegmentCreate      OnSegmentCreateFunc
+	onSegmentComplete    OnSegmentCompleteFunc
+	parent               logger.Writer
 
 	pathFormat2 string
 	format2     format

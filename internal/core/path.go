@@ -772,12 +772,13 @@ func (pa *path) setNotReady() {
 
 func (pa *path) startRecording() {
 	pa.recorder = &recorder.Recorder{
-		PathFormat:      pa.conf.RecordPath,
-		Format:          pa.conf.RecordFormat,
-		PartDuration:    time.Duration(pa.conf.RecordPartDuration),
-		SegmentDuration: time.Duration(pa.conf.RecordSegmentDuration),
-		PathName:        pa.name,
-		Stream:          pa.stream,
+		PathFormat:           pa.conf.RecordPath,
+		Format:               pa.conf.RecordFormat,
+		PartDuration:         time.Duration(pa.conf.RecordPartDuration),
+		SegmentDuration:      time.Duration(pa.conf.RecordSegmentDuration),
+		SegmentRoundDuration: time.Duration(pa.conf.RecordSegmentRoundDuration),
+		PathName:             pa.name,
+		Stream:               pa.stream,
 		OnSegmentCreate: func(segmentPath string) {
 			if pa.conf.RunOnRecordSegmentCreate != "" {
 				env := pa.ExternalCmdEnv()

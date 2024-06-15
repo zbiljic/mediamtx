@@ -354,6 +354,8 @@ components:
           type: string
         recordSegmentDuration:
           type: string
+        recordSegmentRoundDuration:
+          type: string
         recordDeleteAfter:
           type: string
 
