@@ -16,16 +16,17 @@ type OnSegmentCompleteFunc = func(path string, duration time.Duration)
 
 // Agent writes recordings to disk.
 type Agent struct {
-	WriteQueueSize    int
-	PathFormat        string
-	Format            conf.RecordFormat
-	PartDuration      time.Duration
-	SegmentDuration   time.Duration
-	PathName          string
-	Stream            *stream.Stream
-	OnSegmentCreate   OnSegmentCreateFunc
-	OnSegmentComplete OnSegmentCompleteFunc
-	Parent            logger.Writer
+	WriteQueueSize       int
+	PathFormat           string
+	Format               conf.RecordFormat
+	PartDuration         time.Duration
+	SegmentDuration      time.Duration
+	SegmentRoundDuration time.Duration
+	PathName             string
+	Stream               *stream.Stream
+	OnSegmentCreate      OnSegmentCreateFunc
+	OnSegmentComplete    OnSegmentCompleteFunc
+	Parent               logger.Writer
 
 	restartPause time.Duration
 
