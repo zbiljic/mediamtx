@@ -103,14 +103,22 @@ type formatFMP4Segment struct {
 	startDTS time.Duration
 	startNTP time.Time
 
-	path    string
-	fi      *os.File
-	curPart *formatFMP4Part
-	endDTS  time.Duration
+	path        string
+	fi          *os.File
+	curPart     *formatFMP4Part
+	endDTS      time.Duration
+	endAfterNTP time.Time
 }
 
 func (s *formatFMP4Segment) initialize() {
 	s.endDTS = s.startDTS
+
+	if !s.startNTP.IsZero() && s.f.ri.segmentRoundDuration > 0 {
+		s.endAfterNTP = s.startNTP.Round(s.f.ri.segmentRoundDuration)
+		if s.startNTP.Sub(s.endAfterNTP) >= 0 {
+			s.endAfterNTP = s.endAfterNTP.Add(s.f.ri.segmentRoundDuration)
+		}
+	}
 }
 
 func (s *formatFMP4Segment) close() error {
