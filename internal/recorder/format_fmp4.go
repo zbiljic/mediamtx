@@ -104,6 +104,7 @@ type formatFMP4 struct {
 	hasVideo           bool
 	currentSegment     *formatFMP4Segment
 	nextSequenceNumber uint32
+	startAfterNTP      time.Time
 }
 
 func (f *formatFMP4) initialize() bool {

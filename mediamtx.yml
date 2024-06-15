@@ -492,6 +492,9 @@ pathDefaults:
   # When a system failure occurs, the last part gets lost.
   # Therefore, the part duration is equal to the RPO (recovery point objective).
   recordPartDuration: 1s
+  # Minimum duration to which a part is rounded to the nearest multiple of.
+  # Set to 0s to disable part rounding.
+  recordPartRoundDuration: 0s
   # This prevents RAM exhaustion.
   recordMaxPartSize: 50M
   # Minimum duration of each segment.
