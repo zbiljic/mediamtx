@@ -24,6 +24,20 @@ func (t *formatFMP4Track) write(sample *sample) error {
 	sample.Duration = uint32(durationGoToMp4(t.nextSample.dts-sample.dts, t.initTrack.TimeScale))
 
 	if t.f.currentSegment == nil {
+		if !sample.ntp.IsZero() && t.f.a.agent.PartRoundDuration > 0 {
+			if t.f.startAfterNTP.IsZero() {
+				t.f.startAfterNTP = sample.ntp.Round(t.f.a.agent.PartRoundDuration)
+				if sample.ntp.Sub(t.f.startAfterNTP) >= 0 {
+					t.f.startAfterNTP = t.f.startAfterNTP.Add(t.f.a.agent.PartRoundDuration)
+				}
+			}
+
+			if sample.ntp.Compare(t.f.startAfterNTP) < 0 {
+				// wait for next round time to start the segment
+				return nil
+			}
+		}
+
 		t.f.currentSegment = &formatFMP4Segment{
 			f:        t.f,
 			startDTS: sample.dts,
