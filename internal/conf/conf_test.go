@@ -58,6 +58,7 @@ func TestConfFromFile(t *testing.T) {
 			RecordPartDuration:         Duration(1 * time.Second),
 			RecordMaxPartSize:          50 * 1024 * 1024,
 			RecordSegmentDuration:      3600000000000,
+			RecordSegmentRoundDuration: 0,
 			RecordDeleteAfter:          86400000000000,
 			RTSPUDPSourcePortRange:     []uint{32768, 60999},
 			MoQTransport:               MoQTransportQUIC,
