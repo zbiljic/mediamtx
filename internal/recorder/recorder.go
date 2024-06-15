@@ -17,15 +17,16 @@ type OnSegmentCompleteFunc = func(path string, duration time.Duration)
 
 // Recorder writes recordings to disk.
 type Recorder struct {
-	PathFormat        string
-	Format            conf.RecordFormat
-	PartDuration      time.Duration
-	SegmentDuration   time.Duration
-	PathName          string
-	Stream            *stream.Stream
-	OnSegmentCreate   OnSegmentCreateFunc
-	OnSegmentComplete OnSegmentCompleteFunc
-	Parent            logger.Writer
+	PathFormat           string
+	Format               conf.RecordFormat
+	PartDuration         time.Duration
+	SegmentDuration      time.Duration
+	SegmentRoundDuration time.Duration
+	PathName             string
+	Stream               *stream.Stream
+	OnSegmentCreate      OnSegmentCreateFunc
+	OnSegmentComplete    OnSegmentCompleteFunc
+	Parent               logger.Writer
 
 	restartPause time.Duration
 
