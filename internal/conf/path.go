@@ -133,6 +133,11 @@ type Path struct {
 	RecordSegmentRoundDuration Duration     `json:"recordSegmentRoundDuration"`
 	RecordDeleteAfter          Duration     `json:"recordDeleteAfter"`
 
+	// Backup
+	BackupAccessKeyId     string   `json:"backupAccessKeyId"`
+	BackupSecretAccessKey string   `json:"backupSecretAccessKey"`
+	Backup                *Backups `json:"backup"`
+
 	// Authentication (deprecated)
 	PublishUser *Credential `json:"publishUser,omitempty"` // deprecated
 	PublishPass *Credential `json:"publishPass,omitempty"` // deprecated
@@ -598,6 +603,28 @@ func (pconf *Path) validate(
 
 	if pconf.RecordDeleteAfter != 0 && pconf.RecordDeleteAfter < pconf.RecordSegmentDuration {
 		return fmt.Errorf("'recordDeleteAfter' cannot be lower than 'recordSegmentDuration'")
+	}
+
+	// Backup
+
+	if pconf.Backup == nil {
+		pconf.Backup = new(Backups)
+	}
+
+	if pconf.BackupAccessKeyId != "" && pconf.BackupSecretAccessKey != "" {
+		for _, b := range *pconf.Backup {
+			for _, r := range b.Replicas {
+				if r.Type == "s3" {
+					// set global values if not set
+					if r.AccessKeyId == "" {
+						r.AccessKeyId = pconf.BackupAccessKeyId
+					}
+					if r.SecretAccessKey == "" {
+						r.SecretAccessKey = pconf.BackupSecretAccessKey
+					}
+				}
+			}
+		}
 	}
 
 	// Authentication (deprecated)

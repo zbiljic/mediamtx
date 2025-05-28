@@ -808,6 +808,10 @@ func (pa *path) startRecording() {
 					env,
 					nil)
 			}
+			if pa.conf.Backup != nil {
+				// TODO:
+				// pa.backup.Initialize()
+			}
 		},
 		Parent: pa,
 	}
