@@ -13,6 +13,7 @@ import (
 
 	"github.com/bluenviron/gortsplib/v4/pkg/base"
 	"github.com/bluenviron/mediamtx/internal/logger"
+	"github.com/k0kubun/pp/v3"
 )
 
 var rePathName = regexp.MustCompile(`^[0-9a-zA-Z_\-/\.~:]+$`)
@@ -132,6 +133,11 @@ type Path struct {
 	RecordSegmentDuration      Duration     `json:"recordSegmentDuration"`
 	RecordSegmentRoundDuration Duration     `json:"recordSegmentRoundDuration"`
 	RecordDeleteAfter          Duration     `json:"recordDeleteAfter"`
+
+	// Backup
+	BackupAccessKeyId     string   `json:"backupAccessKeyId"`
+	BackupSecretAccessKey string   `json:"backupSecretAccessKey"`
+	Backup                *Backups `json:"backup"`
 
 	// Authentication (deprecated)
 	PublishUser *Credential `json:"publishUser,omitempty"` // deprecated
@@ -599,6 +605,30 @@ func (pconf *Path) validate(
 	if pconf.RecordDeleteAfter != 0 && pconf.RecordDeleteAfter < pconf.RecordSegmentDuration {
 		return fmt.Errorf("'recordDeleteAfter' cannot be lower than 'recordSegmentDuration'")
 	}
+
+	// Backup
+
+	if pconf.Backup == nil {
+		pconf.Backup = new(Backups)
+	}
+
+	if pconf.BackupAccessKeyId != "" && pconf.BackupSecretAccessKey != "" {
+		for _, b := range *pconf.Backup {
+			for _, r := range b.Replicas {
+				if r.Type == "s3" {
+					// set global values if not set
+					if r.AccessKeyId == "" {
+						r.AccessKeyId = pconf.BackupAccessKeyId
+					}
+					if r.SecretAccessKey == "" {
+						r.SecretAccessKey = pconf.BackupSecretAccessKey
+					}
+				}
+			}
+		}
+	}
+
+	pp.Println(pconf.Backup) // TODO: remove
 
 	// Authentication (deprecated)
 
