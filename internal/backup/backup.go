@@ -6,10 +6,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
 type BackupStore struct {
@@ -42,15 +40,14 @@ func (b *BackupStore) UploadToS3(filePath string) error {
 		return fmt.Errorf("S3 upload is not enabled")
 	}
 
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithRegion(b.S3Region),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(b.S3AccessKey, b.S3SecretKey, "")),
-	)
+	// Initialize minio client object.
+	s3Client, err := minio.New(b.S3Bucket, &minio.Options{
+		Creds:  credentials.NewStaticV4(b.S3AccessKey, b.S3SecretKey, ""),
+		Region: b.S3Region,
+	})
 	if err != nil {
-		return fmt.Errorf("unable to load SDK config, %v", err)
+		return fmt.Errorf("unable to initialize minio client, %v", err)
 	}
-
-	s3Client := s3.NewFromConfig(cfg)
 
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -58,11 +55,7 @@ func (b *BackupStore) UploadToS3(filePath string) error {
 	}
 	defer file.Close()
 
-	_, err = s3Client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket: aws.String(b.S3Bucket),
-		Key:    aws.String(filePath),
-		Body:   file,
-	})
+	_, err = s3Client.PutObject(context.TODO(), b.S3Bucket, filePath, file, -1, minio.PutObjectOptions{})
 	if err != nil {
 		return fmt.Errorf("unable to upload %q to S3 bucket %q, %v", filePath, b.S3Bucket, err)
 	}
