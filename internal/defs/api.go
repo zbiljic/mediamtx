@@ -72,9 +72,9 @@ type APIPathSourceOrReader struct {
 type APIPath struct {
 	Name          string                  `json:"name"`
 	ConfName      string                  `json:"confName"`
-	Source        *APIPathSourceOrReader  `json:"source"`
+	Source        *APIPathSourceOrReader  `json:"source,omitempty"`
 	Ready         bool                    `json:"ready"`
-	ReadyTime     *time.Time              `json:"readyTime"`
+	ReadyTime     *time.Time              `json:"readyTime,omitempty"`
 	Tracks        []string                `json:"tracks"`
 	BytesReceived uint64                  `json:"bytesReceived"`
 	BytesSent     uint64                  `json:"bytesSent"`
@@ -139,7 +139,7 @@ type APIRTSPConn struct {
 	RemoteAddr    string     `json:"remoteAddr"`
 	BytesReceived uint64     `json:"bytesReceived"`
 	BytesSent     uint64     `json:"bytesSent"`
-	Session       *uuid.UUID `json:"session"`
+	Session       *uuid.UUID `json:"session,omitempty"`
 }
 
 // APIRTSPConnsList is a list of RTSP connections.
@@ -167,7 +167,7 @@ type APIRTSPSession struct {
 	State               APIRTSPSessionState `json:"state"`
 	Path                string              `json:"path"`
 	Query               string              `json:"query"`
-	Transport           *string             `json:"transport"`
+	Transport           *string             `json:"transport,omitempty"`
 	BytesReceived       uint64              `json:"bytesReceived"`
 	BytesSent           uint64              `json:"bytesSent"`
 	RTPPacketsReceived  uint64              `json:"rtpPacketsReceived"`
