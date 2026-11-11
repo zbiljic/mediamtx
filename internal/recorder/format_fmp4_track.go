@@ -113,10 +113,11 @@ func (t *formatFMP4Track) write(sample *formatFMP4Sample) error {
 
 	if t.f.currentSegment == nil {
 		t.f.currentSegment = &formatFMP4Segment{
-			f:        t.f,
-			startDTS: dts,
-			startNTP: sample.ntp,
-			number:   t.f.nextSegmentNumber,
+			f:           t.f,
+			startDTS:    dts,
+			startNTP:    sample.ntp,
+			endAfterNTP: segmentRoundEnd(sample.ntp, t.f.ri.segmentRoundDuration, t.f.ri.location),
+			number:      t.f.nextSegmentNumber,
 		}
 		t.f.currentSegment.initialize()
 		t.f.nextSegmentNumber++
@@ -134,7 +135,7 @@ func (t *formatFMP4Track) write(sample *formatFMP4Sample) error {
 
 	if (!t.f.hasVideo || t.initTrack.Codec.IsVideo()) &&
 		!t.nextSample.IsNonSyncSample &&
-		(nextDTS-t.f.currentSegment.startDTS) >= t.f.ri.segmentDuration {
+		t.f.currentSegment.isOver(nextDTS, t.nextSample.ntp) {
 		err = t.f.currentSegment.close()
 		if err != nil {
 			return err
@@ -142,11 +143,14 @@ func (t *formatFMP4Track) write(sample *formatFMP4Sample) error {
 
 		oldestNTP, oldestDTS := nextSegmentStartingPos(t.f.tracks)
 
+		// the segment might start slightly before the sample that caused the switch.
+		// Compute the round time from the latter, otherwise the segment would be closed immediately.
 		t.f.currentSegment = &formatFMP4Segment{
-			f:        t.f,
-			startDTS: oldestDTS,
-			startNTP: oldestNTP,
-			number:   t.f.nextSegmentNumber,
+			f:           t.f,
+			startDTS:    oldestDTS,
+			startNTP:    oldestNTP,
+			endAfterNTP: segmentRoundEnd(t.nextSample.ntp, t.f.ri.segmentRoundDuration, t.f.ri.location),
+			number:      t.f.nextSegmentNumber,
 		}
 		t.f.currentSegment.initialize()
 		t.f.nextSegmentNumber++

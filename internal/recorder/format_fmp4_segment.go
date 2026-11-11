@@ -118,10 +118,11 @@ func writeDuration(f io.ReadWriteSeeker, d time.Duration) error {
 }
 
 type formatFMP4Segment struct {
-	f        *formatFMP4
-	startDTS time.Duration
-	startNTP time.Time
-	number   uint64
+	f           *formatFMP4
+	startDTS    time.Duration
+	startNTP    time.Time
+	endAfterNTP time.Time
+	number      uint64
 
 	path           string
 	fi             *os.File
@@ -132,6 +133,12 @@ type formatFMP4Segment struct {
 
 func (s *formatFMP4Segment) initialize() {
 	s.endDTS = s.startDTS
+}
+
+// isOver returns whether the segment has to be closed before writing a sample with given timestamps.
+func (s *formatFMP4Segment) isOver(dts time.Duration, ntp time.Time) bool {
+	return (dts-s.startDTS) >= s.f.ri.segmentDuration ||
+		(!s.endAfterNTP.IsZero() && !ntp.Before(s.endAfterNTP))
 }
 
 func (s *formatFMP4Segment) close() error {

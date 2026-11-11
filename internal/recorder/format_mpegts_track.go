@@ -57,6 +57,7 @@ func (t *formatMPEGTSTrack) write(
 			onSegmentComplete: t.f.ri.onSegmentComplete,
 			startDTS:          dts,
 			startNTP:          ntp,
+			endAfterNTP:       segmentRoundEnd(ntp, t.f.ri.segmentRoundDuration, t.f.ri.location),
 			log:               t.f.ri,
 		}
 		t.f.currentSegment.initialize()
@@ -64,7 +65,8 @@ func (t *formatMPEGTSTrack) write(
 
 	case (!t.f.hasVideo || isVideo) &&
 		randomAccess &&
-		(dts-t.f.currentSegment.startDTS) >= t.f.ri.segmentDuration:
+		((dts-t.f.currentSegment.startDTS) >= t.f.ri.segmentDuration ||
+			(!t.f.currentSegment.endAfterNTP.IsZero() && !ntp.Before(t.f.currentSegment.endAfterNTP))):
 		t.f.currentSegment.lastDTS = dts
 		err := t.f.currentSegment.close()
 		if err != nil {
@@ -79,6 +81,7 @@ func (t *formatMPEGTSTrack) write(
 			onSegmentComplete: t.f.ri.onSegmentComplete,
 			startDTS:          dts,
 			startNTP:          ntp,
+			endAfterNTP:       segmentRoundEnd(ntp, t.f.ri.segmentRoundDuration, t.f.ri.location),
 			log:               t.f.ri,
 		}
 		t.f.currentSegment.initialize()

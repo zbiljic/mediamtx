@@ -1535,3 +1535,138 @@ func TestRecorderTimeDriftDetector(t *testing.T) {
 		})
 	}
 }
+
+func TestRecorderSegmentRoundDuration(t *testing.T) {
+	for _, format := range []conf.RecordFormat{conf.RecordFormatFMP4, conf.RecordFormatMPEGTS} {
+		ext := "mp4"
+		if format == conf.RecordFormatMPEGTS {
+			ext = "ts"
+		}
+
+		for _, ca := range []string{"audio before round time", "segment duration before round time"} {
+			t.Run(ext+" "+ca, func(t *testing.T) {
+				desc := &description.Session{Medias: []*description.Media{
+					{
+						Type:    description.MediaTypeVideo,
+						Formats: []rtspformat.Format{test.FormatH264},
+					},
+					{
+						Type:    description.MediaTypeAudio,
+						Formats: []rtspformat.Format{test.FormatMPEG4Audio},
+					},
+				}}
+
+				strm := &stream.Stream{
+					OrigDesc:          desc,
+					WriteQueueSize:    512,
+					RTPMaxPayloadSize: 1450,
+					Parent:            test.NilLogger,
+				}
+				err := strm.Initialize()
+				require.NoError(t, err)
+				defer strm.Close()
+
+				subStream := &stream.SubStream{
+					Stream:        strm,
+					UseRTPPackets: false,
+				}
+				err = subStream.Initialize()
+				require.NoError(t, err)
+
+				dir := t.TempDir()
+
+				segmentDuration := 1 * time.Hour
+				if ca == "segment duration before round time" {
+					segmentDuration = 10 * time.Second
+				}
+
+				var segments []string
+
+				w := &Recorder{
+					location:             time.UTC,
+					PathFormat:           filepath.Join(dir, "%path/%Y-%m-%d_%H-%M-%S-%f"),
+					Format:               format,
+					PartDuration:         100 * time.Millisecond,
+					MaxPartSize:          50 * 1024 * 1024,
+					SegmentDuration:      segmentDuration,
+					SegmentRoundDuration: 10 * time.Second,
+					PathName:             "mypath",
+					Stream:               strm,
+					Parent:               test.NilLogger,
+					OnSegmentCreate: func(segPath string) {
+						segments = append(segments, filepath.Base(segPath))
+					},
+				}
+				w.Initialize()
+
+				writeVideo := func(pts time.Duration, ntp time.Time) {
+					subStream.WriteUnit(desc.Medias[0], desc.Medias[0].Formats[0], &unit.Unit{
+						PTS: int64(pts) * 90000 / int64(time.Second),
+						NTP: ntp,
+						Payload: unit.PayloadH264{
+							{5}, // IDR
+						},
+					})
+				}
+
+				writeAudio := func(pts time.Duration, ntp time.Time) {
+					subStream.WriteUnit(desc.Medias[1], desc.Medias[1].Formats[0], &unit.Unit{
+						PTS:     int64(pts) * 44100 / int64(time.Second),
+						NTP:     ntp,
+						Payload: unit.PayloadMPEG4Audio{{1, 2}},
+					})
+				}
+
+				var expected []string
+
+				if ca == "audio before round time" {
+					// key frames are aligned to the round time and are preceded by audio.
+					// The segment that starts with the audio sample before the round time
+					// must not be closed at the round time.
+					ntp := time.Date(2008, 5, 20, 22, 15, 26, 0, time.UTC)
+
+					for i := range 11 {
+						pts := 50*time.Second + time.Duration(i)*time.Second
+						writeAudio(pts-20*time.Millisecond, ntp.Add(time.Duration(i)*time.Second-20*time.Millisecond))
+						writeVideo(pts, ntp.Add(time.Duration(i)*time.Second))
+					}
+
+					if format == conf.RecordFormatFMP4 {
+						expected = []string{
+							"2008-05-20_22-15-25-980000." + ext,
+							"2008-05-20_22-15-29-980000." + ext,
+						}
+					} else {
+						expected = []string{
+							"2008-05-20_22-15-25-980000." + ext,
+							"2008-05-20_22-15-30-000000." + ext,
+						}
+					}
+				} else {
+					// the segment duration is reached slightly before the round time.
+					// The segment that starts before the round time must not be closed at the round time.
+					ntp := time.Date(2008, 5, 20, 22, 15, 20, 0, time.UTC)
+
+					for i := range 16 {
+						sampleNTP := ntp.Add(time.Duration(i) * time.Second)
+						if i == 10 {
+							sampleNTP = sampleNTP.Add(-10 * time.Millisecond)
+						}
+						writeVideo(50*time.Second+time.Duration(i)*time.Second, sampleNTP)
+					}
+
+					expected = []string{
+						"2008-05-20_22-15-20-000000." + ext,
+						"2008-05-20_22-15-29-990000." + ext,
+					}
+				}
+
+				time.Sleep(100 * time.Millisecond)
+
+				w.Close()
+
+				require.Equal(t, expected, segments)
+			})
+		}
+	}
+}

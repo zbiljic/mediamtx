@@ -683,6 +683,13 @@ func TestConfErrors(t *testing.T) {
 			`'recordDeleteAfter' cannot be lower than 'recordSegmentDuration'`,
 		},
 		{
+			"invalid record segment round duration",
+			"paths:\n" +
+				"  my_path:\n" +
+				"    recordSegmentRoundDuration: -1h\n",
+			`'recordSegmentRoundDuration' cannot be negative`,
+		},
+		{
 			"missing rtpAddress with UDP and no encryption",
 			"rtspEncryption: \"no\"\n" +
 				"rtspTransports: [udp]\n" +

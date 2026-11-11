@@ -239,14 +239,15 @@ type Path struct {
 	Forward Forward `json:"forward"`
 
 	// Record
-	Record                bool         `json:"record"`
-	Playback              *bool        `json:"playback,omitempty" deprecated:"true"`
-	RecordPath            string       `json:"recordPath"`
-	RecordFormat          RecordFormat `json:"recordFormat"`
-	RecordPartDuration    Duration     `json:"recordPartDuration"`
-	RecordMaxPartSize     StringSize   `json:"recordMaxPartSize"`
-	RecordSegmentDuration Duration     `json:"recordSegmentDuration"`
-	RecordDeleteAfter     Duration     `json:"recordDeleteAfter"`
+	Record                     bool         `json:"record"`
+	Playback                   *bool        `json:"playback,omitempty" deprecated:"true"`
+	RecordPath                 string       `json:"recordPath"`
+	RecordFormat               RecordFormat `json:"recordFormat"`
+	RecordPartDuration         Duration     `json:"recordPartDuration"`
+	RecordMaxPartSize          StringSize   `json:"recordMaxPartSize"`
+	RecordSegmentDuration      Duration     `json:"recordSegmentDuration"`
+	RecordSegmentRoundDuration Duration     `json:"recordSegmentRoundDuration"`
+	RecordDeleteAfter          Duration     `json:"recordDeleteAfter"`
 
 	// Authentication (deprecated)
 	PublishUser *Credential `json:"publishUser,omitempty" deprecated:"true"`
@@ -900,6 +901,10 @@ func (pconf *Path) validate(
 
 	if pconf.RecordSegmentDuration > Duration(24*time.Hour) { // avoid overflowing DurationV0 of mvhd
 		return fmt.Errorf("maximum segment duration is 1 day")
+	}
+
+	if pconf.RecordSegmentRoundDuration < 0 {
+		return fmt.Errorf("'recordSegmentRoundDuration' cannot be negative")
 	}
 
 	if pconf.RecordDeleteAfter != 0 && pconf.RecordDeleteAfter < pconf.RecordSegmentDuration {

@@ -17,6 +17,7 @@ type formatMPEGTSSegment struct {
 	onSegmentComplete OnSegmentCompleteFunc
 	startDTS          time.Duration
 	startNTP          time.Time
+	endAfterNTP       time.Time
 	log               logger.Writer
 
 	path      string

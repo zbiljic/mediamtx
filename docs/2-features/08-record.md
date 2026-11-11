@@ -40,6 +40,9 @@ pathDefaults:
   recordMaxPartSize: 50M
   # Minimum duration of each segment.
   recordSegmentDuration: 1h
+  # Close segments when the local time reaches a multiple of this duration,
+  # in order to align them to the clock. Set to 0s to disable.
+  recordSegmentRoundDuration: 0s
   # Delete segments after this timespan.
   # Set to 0s to disable automatic deletion.
   recordDeleteAfter: 1d

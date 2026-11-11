@@ -595,6 +595,14 @@ pathDefaults:
   recordMaxPartSize: 50M
   # Minimum duration of each segment.
   recordSegmentDuration: 1h
+  # Close segments when the local time reaches a multiple of this duration,
+  # in order to align them to the clock. For instance, with 1h, a segment started
+  # at 10:20 is closed at 11:00, the next one at 12:00, and so on.
+  # A segment is actually closed at the first key frame after the round time.
+  # Segments are also closed when they reach recordSegmentDuration, therefore the latter
+  # must be greater than or equal to this one in order to obtain aligned segments only.
+  # Set to 0s to disable.
+  recordSegmentRoundDuration: 0s
   # Delete segments after this timespan.
   # Set to 0s to disable automatic deletion.
   recordDeleteAfter: 1d
