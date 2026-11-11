@@ -112,6 +112,10 @@ func (t *formatFMP4Track) write(sample *formatFMP4Sample) error {
 	sample.Duration = uint32(duration)
 
 	if t.f.currentSegment == nil {
+		if t.f.ri.discardBeforeStart(sample.ntp, t.f.hasVideo, t.initTrack.Codec.IsVideo(), !sample.IsNonSyncSample) {
+			return nil
+		}
+
 		t.f.currentSegment = &formatFMP4Segment{
 			f:           t.f,
 			startDTS:    dts,

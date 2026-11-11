@@ -603,6 +603,13 @@ pathDefaults:
   # must be greater than or equal to this one in order to obtain aligned segments only.
   # Set to 0s to disable.
   recordSegmentRoundDuration: 0s
+  # Delay the start of a recording until the local time reaches a multiple of this duration,
+  # in order to align the first segment to the clock. For instance, with 10s, a recording
+  # that would start at 10:20:03 starts at 10:20:10.
+  # The recording actually starts from the first key frame after the round time.
+  # Everything received before is discarded, and this happens every time the recording is restarted.
+  # Set to 0s to disable.
+  recordStartRoundDuration: 0s
   # Delete segments after this timespan.
   # Set to 0s to disable automatic deletion.
   recordDeleteAfter: 1d

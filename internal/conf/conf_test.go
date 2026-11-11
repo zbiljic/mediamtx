@@ -690,6 +690,13 @@ func TestConfErrors(t *testing.T) {
 			`'recordSegmentRoundDuration' cannot be negative`,
 		},
 		{
+			"invalid record start round duration",
+			"paths:\n" +
+				"  my_path:\n" +
+				"    recordStartRoundDuration: -10s\n",
+			`'recordStartRoundDuration' cannot be negative`,
+		},
+		{
 			"missing rtpAddress with UDP and no encryption",
 			"rtspEncryption: \"no\"\n" +
 				"rtspTransports: [udp]\n" +

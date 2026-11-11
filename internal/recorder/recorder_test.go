@@ -1670,3 +1670,127 @@ func TestRecorderSegmentRoundDuration(t *testing.T) {
 		}
 	}
 }
+
+func TestRecorderStartRoundDuration(t *testing.T) {
+	for _, format := range []conf.RecordFormat{conf.RecordFormatFMP4, conf.RecordFormatMPEGTS} {
+		ext := "mp4"
+		if format == conf.RecordFormatMPEGTS {
+			ext = "ts"
+		}
+
+		t.Run(ext, func(t *testing.T) {
+			desc := &description.Session{Medias: []*description.Media{
+				{
+					Type:    description.MediaTypeVideo,
+					Formats: []rtspformat.Format{&rtspformat.MPEG4Video{PayloadTyp: 96}},
+				},
+				{
+					Type:    description.MediaTypeAudio,
+					Formats: []rtspformat.Format{test.FormatMPEG4Audio},
+				},
+			}}
+
+			strm := &stream.Stream{
+				OrigDesc:          desc,
+				WriteQueueSize:    512,
+				RTPMaxPayloadSize: 1450,
+				Parent:            test.NilLogger,
+			}
+			err := strm.Initialize()
+			require.NoError(t, err)
+			defer strm.Close()
+
+			subStream := &stream.SubStream{
+				Stream:        strm,
+				UseRTPPackets: false,
+			}
+			err = subStream.Initialize()
+			require.NoError(t, err)
+
+			dir := t.TempDir()
+
+			var segments []string
+			var warnings []string
+
+			w := &Recorder{
+				location:           time.UTC,
+				PathFormat:         filepath.Join(dir, "%path/%Y-%m-%d_%H-%M-%S-%f"),
+				Format:             format,
+				PartDuration:       100 * time.Millisecond,
+				MaxPartSize:        50 * 1024 * 1024,
+				SegmentDuration:    1 * time.Hour,
+				StartRoundDuration: 1 * time.Second,
+				PathName:           "mypath",
+				Stream:             strm,
+				Parent: test.Logger(func(l logger.Level, format string, args ...any) {
+					if l >= logger.Warn {
+						warnings = append(warnings, fmt.Sprintf(format, args...))
+					}
+				}),
+				OnSegmentCreate: func(segPath string) {
+					segments = append(segments, filepath.Base(segPath))
+				},
+			}
+			w.Initialize()
+
+			// 10 fps, a key frame every 2 seconds, each frame is preceded by audio.
+			// The round time is 22:15:26, the first key frame after it is at 22:15:27.3
+			ntp := time.Date(2008, 5, 20, 22, 15, 25, 300000000, time.UTC)
+
+			for i := range 30 {
+				pts := 50*time.Second + time.Duration(i)*100*time.Millisecond
+				sampleNTP := ntp.Add(time.Duration(i) * 100 * time.Millisecond)
+
+				subStream.WriteUnit(desc.Medias[1], desc.Medias[1].Formats[0], &unit.Unit{
+					PTS:     int64(pts-10*time.Millisecond) * 44100 / int64(time.Second),
+					NTP:     sampleNTP.Add(-10 * time.Millisecond),
+					Payload: unit.PayloadMPEG4Audio{{1, 2}},
+				})
+
+				payload := unit.PayloadMPEG4Video{0, 0, 1, 0xB6, 1, 2, 3}
+				if (i % 20) == 0 {
+					payload = unit.PayloadMPEG4Video{0, 0, 1, 0xB3, 0, 0, 1, 0xB6, 1, 2, 3}
+				}
+
+				subStream.WriteUnit(desc.Medias[0], desc.Medias[0].Formats[0], &unit.Unit{
+					PTS:     int64(pts) * 90000 / int64(time.Second),
+					NTP:     sampleNTP,
+					Payload: payload,
+				})
+			}
+
+			time.Sleep(100 * time.Millisecond)
+
+			w.Close()
+
+			require.Equal(t, []string{"2008-05-20_22-15-27-300000." + ext}, segments)
+			require.Empty(t, warnings)
+
+			if format == conf.RecordFormatFMP4 {
+				var byts []byte
+				byts, err = os.ReadFile(filepath.Join(dir, "mypath", segments[0]))
+				require.NoError(t, err)
+
+				var parts fmp4.Parts
+				err = parts.Unmarshal(byts)
+				require.NoError(t, err)
+
+				// the first sample is the key frame
+				require.Equal(t, 1, parts[0].Tracks[0].ID)
+				require.Equal(t, uint64(0), parts[0].Tracks[0].BaseTime)
+				require.False(t, parts[0].Tracks[0].Samples[0].IsNonSyncSample)
+
+				// audio that precedes the key frame is discarded
+				for _, part := range parts {
+					for _, track := range part.Tracks {
+						if track.ID == 2 {
+							require.Equal(t, uint64(90*44100/1000), track.BaseTime)
+							return
+						}
+					}
+				}
+				t.Fatal("audio track not found")
+			}
+		})
+	}
+}

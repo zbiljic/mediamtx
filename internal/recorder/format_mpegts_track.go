@@ -47,6 +47,10 @@ func (t *formatMPEGTSTrack) write(
 		}
 	}
 
+	if t.f.currentSegment == nil && t.f.ri.discardBeforeStart(ntp, t.f.hasVideo, isVideo, randomAccess) {
+		return nil
+	}
+
 	switch {
 	case t.f.currentSegment == nil:
 		t.f.currentSegment = &formatMPEGTSSegment{

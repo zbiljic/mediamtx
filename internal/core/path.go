@@ -469,6 +469,7 @@ func (pa *path) doReloadConf(newConf *conf.Path) {
 			newConf.RecordMaxPartSize != oldConf.RecordMaxPartSize ||
 			newConf.RecordSegmentDuration != oldConf.RecordSegmentDuration ||
 			newConf.RecordSegmentRoundDuration != oldConf.RecordSegmentRoundDuration ||
+			newConf.RecordStartRoundDuration != oldConf.RecordStartRoundDuration ||
 			newConf.RecordDeleteAfter != oldConf.RecordDeleteAfter ||
 			newConf.AlwaysAvailableRecorded != oldConf.AlwaysAvailableRecorded) {
 		pa.recorder.Close()
@@ -1039,6 +1040,7 @@ func (pa *path) startRecording() {
 		MaxPartSize:          pa.conf.RecordMaxPartSize,
 		SegmentDuration:      time.Duration(pa.conf.RecordSegmentDuration),
 		SegmentRoundDuration: time.Duration(pa.conf.RecordSegmentRoundDuration),
+		StartRoundDuration:   time.Duration(pa.conf.RecordStartRoundDuration),
 		PathName:             pa.name,
 		Stream:               pa.stream,
 		OnSegmentCreate: func(segmentPath string) {

@@ -1131,6 +1131,8 @@ components:
           type: string
         recordSegmentRoundDuration:
           type: string
+        recordStartRoundDuration:
+          type: string
         rpiCameraAWB:
           type: string
         rpiCameraAWBGains:

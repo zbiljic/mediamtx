@@ -247,6 +247,7 @@ type Path struct {
 	RecordMaxPartSize          StringSize   `json:"recordMaxPartSize"`
 	RecordSegmentDuration      Duration     `json:"recordSegmentDuration"`
 	RecordSegmentRoundDuration Duration     `json:"recordSegmentRoundDuration"`
+	RecordStartRoundDuration   Duration     `json:"recordStartRoundDuration"`
 	RecordDeleteAfter          Duration     `json:"recordDeleteAfter"`
 
 	// Authentication (deprecated)
@@ -905,6 +906,10 @@ func (pconf *Path) validate(
 
 	if pconf.RecordSegmentRoundDuration < 0 {
 		return fmt.Errorf("'recordSegmentRoundDuration' cannot be negative")
+	}
+
+	if pconf.RecordStartRoundDuration < 0 {
+		return fmt.Errorf("'recordStartRoundDuration' cannot be negative")
 	}
 
 	if pconf.RecordDeleteAfter != 0 && pconf.RecordDeleteAfter < pconf.RecordSegmentDuration {

@@ -43,6 +43,9 @@ pathDefaults:
   # Close segments when the local time reaches a multiple of this duration,
   # in order to align them to the clock. Set to 0s to disable.
   recordSegmentRoundDuration: 0s
+  # Delay the start of a recording until the local time reaches a multiple of this duration,
+  # in order to align the first segment to the clock. Set to 0s to disable.
+  recordStartRoundDuration: 0s
   # Delete segments after this timespan.
   # Set to 0s to disable automatic deletion.
   recordDeleteAfter: 1d

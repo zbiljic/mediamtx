@@ -19,6 +19,7 @@ type recorderInstance struct {
 	maxPartSize          conf.StringSize
 	segmentDuration      time.Duration
 	segmentRoundDuration time.Duration
+	startRoundDuration   time.Duration
 	pathName             string
 	stream               *stream.Stream
 	onSegmentCreate      OnSegmentCreateFunc
@@ -32,6 +33,9 @@ type recorderInstance struct {
 	skip        bool
 	reader      *stream.Reader
 
+	// in reader goroutine
+	startAfterNTP time.Time
+
 	terminate chan struct{}
 	done      chan struct{}
 }
@@ -39,6 +43,27 @@ type recorderInstance struct {
 // Log implements logger.Writer.
 func (ri *recorderInstance) Log(level logger.Level, format string, args ...any) {
 	ri.parent.Log(level, format, args...)
+}
+
+// discardBeforeStart returns whether a sample has to be discarded in order to start
+// the recording at a multiple of startRoundDuration.
+// It must be called until the first segment is created.
+func (ri *recorderInstance) discardBeforeStart(ntp time.Time, hasVideo bool, isVideo bool, randomAccess bool) bool {
+	if ri.startRoundDuration <= 0 || ntp.IsZero() {
+		return false
+	}
+
+	if ri.startAfterNTP.IsZero() {
+		ri.startAfterNTP = nextRoundTime(ntp, ri.startRoundDuration, ri.location)
+	}
+
+	if ntp.Before(ri.startAfterNTP) {
+		return true
+	}
+
+	// samples before the round time have been discarded,
+	// therefore the recording must start from a random access sample of the video track, if any.
+	return hasVideo && (!isVideo || !randomAccess)
 }
 
 func (ri *recorderInstance) initialize() {
